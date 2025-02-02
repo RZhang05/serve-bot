@@ -1,5 +1,6 @@
 import pytest
 import os
+import pause
 
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -17,30 +18,29 @@ def driver():
     yield driver
     driver.quit()
 
-@pytest.fixture()
-def dotenv_info():
-    load_dotenv()
-
-    yield (os.getenv('EMAIL'), os.getenv('PASSWORD'), os.getenv("HOURS"), os.getenv("MINUTES"), os.getenv("TESTING"))
-
-def test_prints_page(driver, dotenv_info):
+def test_prints_page(driver):
     # wait for elements
     driver.implicitly_wait(5)
     # make sure full screen so elements are not hidden
     driver.maximize_window()
 
+    # load env variables and force update
+    load_dotenv(verbose=True, override=True)
+
     # go to serve page
     driver.get("https://warrior.uwaterloo.ca/Program/GetProgramDetails?courseId=2882ad00-6e10-4b25-ac28-238a716ab8c5")
 
-    email = dotenv_info[0]
-    password = dotenv_info[1]
-    hours = dotenv_info[2]
-    minutes = dotenv_info[3]
+    email = os.getenv('EMAIL')
+    password = os.getenv('PASSWORD')
+    hours = int(os.getenv("HOURS"))
+    minutes = int(os.getenv("MINUTES"))
+    testing = os.getenv("TESTING")
+
+    wait = WebDriverWait(driver, 5)
     
     # log in if necessary
     try:
         driver.find_element(By.ID, "loginLinkBtn").click()
-        wait = WebDriverWait(driver, 5)
         login = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@title="WATIAM USERS" and not(@disabled)]')))
         login.click()
 
@@ -60,26 +60,37 @@ def test_prints_page(driver, dotenv_info):
     wait.until(EC.presence_of_element_located((By.ID, "profileUserThumbId")))
 
     # wait until chosen time
-    while True:
-        d = datetime.datetime.now()
+    d = datetime.datetime.now()
 
-        if d.hour == hours and d.minute == minutes or dotenv_info[4]:
-            # time to register
-            # refresh page
-            driver.refresh()
-            # wait for page load
-            wait.until(EC.presence_of_element_located((By.ID, "profileUserThumbId")))
-            # find most recent session button and click it
-            buttons = driver.find_elements(By.XPATH, '//button[@class="btn date-selector-btn-secondary single-date-select-button single-date-select-one-click position-relative"]')
-            button = wait.until(EC.element_to_be_clickable(buttons[-1]))  
-            button.click()
+    chosen_time = datetime.datetime(d.year, d.month, d.day, hours, minutes, 0)
+    pause.until(chosen_time)
 
-            # select session
-            driver.find_elements(By.XPATH, '//button[@class="btn btn-outline-primary program-select-btn w-100 mb-2"]').click()
-            # register
-            register = wait.until(EC.element_to_be_clickable((By.ID, "registerBtn")))
-            register.click()
-            time.sleep(5)
-        else:
-            time.sleep(0.1)
+    # check pfp before refresh
+    pfp = driver.find_element(By.ID, "profileUserThumbId")
+
+    # accept cookies :)
+    driver.find_element(By.ID, "gdpr-cookie-accept").click()
+
+    # time to register
+    # refresh page
+    driver.refresh()
+    # wait for page refresh to invalidate old pfp button
+    wait.until(EC.staleness_of(pfp))
+    # keep track of old session button
+    old_session = driver.find_element(By.XPATH, '//button[@class="btn btn-outline-primary program-select-btn w-100 mb-2"]')
+    # find most recent session button and click it
+    buttons = driver.find_elements(By.XPATH, '//button[@class="btn date-selector-btn-secondary single-date-select-button single-date-select-one-click position-relative"]')
+    button = wait.until(EC.element_to_be_clickable(buttons[-1]))  
+    button.click()
+
+    # wait for old session button to be invalidated
+    wait.until(EC.staleness_of(old_session))
+    # select new session
+    session = driver.find_element(By.XPATH, '//button[@class="btn btn-outline-primary program-select-btn w-100 mb-2"]')
+    session.click()
+    # register
+    register = wait.until(EC.element_to_be_clickable((By.ID, "registerBtn")))
+    register.click()
+    # 60 seconds to finish registration process
+    time.sleep(60)
 
