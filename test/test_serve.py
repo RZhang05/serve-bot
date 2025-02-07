@@ -18,7 +18,7 @@ def driver():
     yield driver
     driver.quit()
 
-def test_prints_page(driver):
+def test_serve(driver):
     # wait for elements
     driver.implicitly_wait(5)
     # make sure full screen so elements are not hidden
@@ -36,7 +36,7 @@ def test_prints_page(driver):
     minutes = int(os.getenv("MINUTES"))
     testing = os.getenv("TESTING")
 
-    wait = WebDriverWait(driver, 5)
+    wait = WebDriverWait(driver, 10)
     
     # log in if necessary
     try:
@@ -59,6 +59,9 @@ def test_prints_page(driver):
     # wait for login success
     wait.until(EC.presence_of_element_located((By.ID, "profileUserThumbId")))
 
+    # accept cookies :)
+    driver.find_element(By.ID, "gdpr-cookie-accept").click()
+
     # wait until chosen time
     d = datetime.datetime.now()
 
@@ -67,9 +70,6 @@ def test_prints_page(driver):
 
     # check pfp before refresh
     pfp = driver.find_element(By.ID, "profileUserThumbId")
-
-    # accept cookies :)
-    driver.find_element(By.ID, "gdpr-cookie-accept").click()
 
     # time to register
     # refresh page

@@ -4,6 +4,7 @@ A python script to open a browser instance using `Selenium` and auto enroll into
 ## Features
 - can only sign up for the first session in a day (i.e. will not be able to do the second (later) session on Fridays for example)
 - currently uses the edge browser (may need to be updated to support other browsers)
+- ideally run it almost right before the session opens since it does not handle idle behaviour (session expiration)
 
 ## How to use
 If any issues are encountered please reach out to me.
