@@ -1,5 +1,5 @@
 # Serve auto sign up
-A python script to open a browser instance using `Selenium` and auto enroll into a serve session. This script is designed to wait until a certain time, refresh the page, choose the most recent session and register.
+A python script to open a browser instance using `Selenium` and auto enroll into a serve session. This script is designed to wait until a certain time, refresh the page, choose the most recent session and register. Takes ~1s for the refresh and registration process.
 
 ## Features
 - can only sign up for the first session in a day (i.e. will not be able to do the second (later) session on Fridays for example)
