@@ -88,8 +88,9 @@ def test_serve(driver):
 
     # wait for old session button to be invalidated
     wait.until(EC.staleness_of(old_session))
-    # select new session
-    session = driver.find_element(By.XPATH, '//button[@class="btn btn-outline-primary program-select-btn w-100 mb-2"]')
+    # select newest session
+    sessions = driver.find_elements(By.XPATH, '//button[@class="btn btn-outline-primary program-select-btn w-100 mb-2"]')
+    session = wait.until(EC.element_to_be_clickable(sessions[-1]))  
     session.click()
     # register
     register = wait.until(EC.element_to_be_clickable((By.ID, "registerBtn")))
