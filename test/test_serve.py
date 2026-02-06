@@ -5,12 +5,10 @@ import pause
 from dotenv import load_dotenv
 from selenium import webdriver
 import datetime
-from selenium.common import NoSuchElementException, ElementNotInteractableException
 from selenium.webdriver.common.by import By
 import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver import Keys
 
 
 @pytest.fixture()
@@ -40,19 +38,25 @@ def test_serve(driver):
     password = os.getenv("PASSWORD")
     hours = int(os.getenv("HOURS"))
     minutes = int(os.getenv("MINUTES"))
-    testing = os.getenv("TESTING")
+    # is testing true
+    testing = os.getenv("TESTING") == "true"
 
     wait = WebDriverWait(driver, 10)
 
     # log in if necessary
     try:
-        driver.find_element(By.ID, "loginLinkBtn").click()
-        login = wait.until(
-            EC.element_to_be_clickable(
-                (By.XPATH, '//button[@title="WATIAM USERS" and not(@disabled)]')
-            )
+        # sign in button
+        signInButton = wait.until(EC.element_to_be_clickable((By.ID, "loginLinkBtn")))
+        signInButton.click()
+
+        # the WATIAM button is disabled temporarily, wait for 1 second for consistency
+        pause.sleep(1)
+
+        # WATIAM button
+        WATIAMButton = wait.until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, ".btn-sign-in"))
         )
-        login.click()
+        WATIAMButton.click()
 
         # input username
         email_input = wait.until(
@@ -81,7 +85,9 @@ def test_serve(driver):
     d = datetime.datetime.now()
 
     chosen_time = datetime.datetime(d.year, d.month, d.day, hours, minutes, 0)
-    pause.until(chosen_time)
+
+    if not testing:
+        pause.until(chosen_time)
 
     # check pfp before refresh
     pfp = driver.find_element(By.ID, "profileUserThumbId")
@@ -94,28 +100,28 @@ def test_serve(driver):
     driver.refresh()
     # wait for page refresh to invalidate old pfp button
     wait.until(EC.staleness_of(pfp))
-    # keep track of old session button
-    old_session = driver.find_element(
-        By.XPATH,
-        '//button[@class="btn btn-outline-primary program-select-btn w-100 mb-2"]',
+
+    # keep track of old select session button for staleness check
+    old_session_select_btn = driver.find_element(
+        By.CSS_SELECTOR,
+        ".program-select-btn",
     )
-    # find most recent session button and click it
-    buttons = driver.find_elements(
-        By.XPATH,
-        '//button[@class="btn date-selector-btn-secondary single-date-select-button single-date-select-one-click position-relative"]',
-    )
-    button = wait.until(EC.element_to_be_clickable(buttons[-1]))
-    button.click()
+
+    # wait for newest session button to be clickable
+    newest_session = driver.find_elements(
+        By.CSS_SELECTOR,
+        ".single-date-select-one-click",
+    )[-1]
+    newest_session.click()
 
     # wait for old session button to be invalidated
-    wait.until(EC.staleness_of(old_session))
-    # select newest session
-    sessions = driver.find_elements(
-        By.XPATH,
-        '//button[@class="btn btn-outline-primary program-select-btn w-100 mb-2"]',
+    wait.until(EC.staleness_of(old_session_select_btn))
+
+    select_btn = wait.until(
+        EC.element_to_be_clickable((By.CSS_SELECTOR, ".program-select-btn"))
     )
-    session = wait.until(EC.element_to_be_clickable(sessions[-1]))
-    session.click()
+    select_btn.click()
+
     # register
     register = wait.until(EC.element_to_be_clickable((By.ID, "registerBtn")))
     register.click()
