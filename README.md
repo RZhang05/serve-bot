@@ -26,7 +26,7 @@ If any issues are encountered please reach out to me.
 3. Run `pip install -r requirements.txt`.
 
 ### Running the script
-1. Change the `HOURS` and `MINUTES` fields to when you want the page to be refreshed (if a session opens at 9pm you would put `21` and `0` respectively).
+1. Change the `HOURS` and `MINUTES` fields to when you want the page to be refreshed in 24 hour time (if a session opens at 9pm you would put `21` and `0` respectively).
 2. Run `pytest -s`.
 3. Wait until the time comes, the script should register you automatically, then **you will have 60 seconds to finish the registration process**.
 4. Have fun at the serve session :)
