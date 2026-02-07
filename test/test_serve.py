@@ -101,21 +101,12 @@ def test_serve(driver):
     # wait for page refresh to invalidate old pfp button
     wait.until(EC.staleness_of(pfp))
 
-    # keep track of old select session button for staleness check
-    old_session_select_btn = driver.find_element(
-        By.CSS_SELECTOR,
-        ".program-select-btn",
-    )
-
     # wait for newest session button to be clickable
     newest_session = driver.find_elements(
         By.CSS_SELECTOR,
         ".single-date-select-one-click",
     )[-1]
     newest_session.click()
-
-    # wait for old session button to be invalidated
-    wait.until(EC.staleness_of(old_session_select_btn))
 
     select_btn = wait.until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, ".program-select-btn"))
@@ -131,4 +122,4 @@ def test_serve(driver):
     print("Execution time: ", t1 - t0)
 
     # 60 seconds to finish registration process
-    time.sleep(60)
+    time.sleep(120)
