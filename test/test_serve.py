@@ -86,14 +86,11 @@ def test_serve(driver):
 
     chosen_time = datetime.datetime(d.year, d.month, d.day, hours, minutes, 0)
 
-    if not testing:
-        pause.until(chosen_time)
-
     # check pfp before refresh
     pfp = driver.find_element(By.ID, "profileUserThumbId")
 
-    # benchmarking
-    t0 = datetime.datetime.now()
+    if not testing:
+        pause.until(chosen_time)
 
     # time to register
     # refresh page
@@ -126,10 +123,6 @@ def test_serve(driver):
     # register
     register = wait.until(EC.element_to_be_clickable((By.ID, "registerBtn")))
     register.click()
-
-    # benchmarking
-    t1 = datetime.datetime.now()
-    print("Execution time: ", t1 - t0)
 
     # 120 seconds to finish registration process
     time.sleep(120)
